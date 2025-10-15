@@ -2,11 +2,28 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity,Image } from 'react
 import { useState } from 'react'; 
 import { COLORS } from '../constants/colors';
 import logo from '../assets/ASATLIT-Logo.png'
+import { signIn } from '../services/authService';
 
 
 export default function LoginScreen({navigation}){
     const [email, setEmail] = useState(''); 
-    const [password, setPassword] = useState('')
+    const [password, setPassword] = useState('');
+    const handleLogin = async () => {
+        if (!email || !password) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        const { data, error } = await signIn(email, password);
+        
+        if (error) {
+            alert(error.message);
+        } else {
+            console.log("Login successful!", data.user);
+            navigation.navigate('Home'); // We'll create this screen next
+        }
+};
+
     return (
         <View style={styles.container}>
 
@@ -33,13 +50,13 @@ export default function LoginScreen({navigation}){
         <Text style={styles.forgot}>forgot password?</Text>
         </TouchableOpacity>
         <View style= {styles.buttons}> 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
        
         </View>
          <TouchableOpacity onPress={()=> navigation.navigate('Register')}>
-         <Text style={styles.register}> New here? register</Text>
+         <Text style={styles.register}> New here? register your company</Text>
          </TouchableOpacity>
          </View>
         </View>

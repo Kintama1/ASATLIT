@@ -2,13 +2,34 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, Image } from 'reac
 import { useState } from 'react'; 
 import { COLORS } from '../constants/colors';
 import logo from '../assets/ASATLIT-Logo.png'
+import { signUp } from '../services/authService';
 
 export default function RegisterScreen({navigation}){
     const [fullName, setFullName] = useState(''); 
     const [email, setEmail] = useState(''); 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [companyName, setCompanyName]= useState('')
 
+    const handleSignup = async()=> {
+        console.log("WE ARE FIRING THIS UP");
+        if (password !== confirmPassword){
+            alert("Passwords do not match");
+            return;
+        }
+        if (!password || !email){
+            alert("Please fill in all fields")
+        }
+        const {data, error} = await signUp(email, password);
+        console.log("seeing data that came back from Supa", data);
+        if (error) {
+            alert(error.message);
+        }
+        else {
+            alert("Singup succsessful, check email for confirmation");
+            navigation.navigate('Login');
+        }
+    }
     return (
         <View style={styles.container}>
             <Image 
@@ -20,6 +41,13 @@ export default function RegisterScreen({navigation}){
                     value={fullName}
                     onChangeText={setFullName}
                     placeholder='Enter full name'
+                    placeholderTextColor="rgba(255, 255, 255, 0.6)"
+                    style={styles.input}
+                />
+                <TextInput
+                    value={companyName}
+                    onChangeText={setCompanyName}
+                    placeholder='Enter company name'
                     placeholderTextColor="rgba(255, 255, 255, 0.6)"
                     style={styles.input}
                 />
@@ -50,13 +78,14 @@ export default function RegisterScreen({navigation}){
                 />
                 
                 <View style={styles.buttons}> 
-                    <TouchableOpacity style={styles.button}>
-                        <Text style={styles.buttonText}>Register</Text>
+                    <TouchableOpacity style={styles.button} onPress={handleSignup}>
+                        <Text style={styles.buttonText} >Register</Text>
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity onPress={()=> navigation.navigate('Login')}>
                 <Text style={styles.login}>Already have an account? Login</Text>
                 </TouchableOpacity>
+                
             </View>
         </View>
     )
