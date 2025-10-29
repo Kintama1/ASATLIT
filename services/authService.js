@@ -34,6 +34,7 @@ export const signUp = async (email, password, firstName, lastName, companyName) 
     console.log("Success! Returning data:", data);
     return {data, error: null};  // ✅ Fixed
 };
+
 export const signIn = async (email, password) => {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -46,3 +47,17 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   return { error };
 };
+export async function getUserProfile(userId) {
+    const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+    
+    if (error) {
+        console.error('Error fetching profile:', error);
+        return { data: null, error };
+    }
+    
+    return { data, error: null };
+}

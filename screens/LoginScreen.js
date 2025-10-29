@@ -3,25 +3,53 @@ import { useState } from 'react';
 import { COLORS } from '../constants/colors';
 import logo from '../assets/ASATLIT-Logo.png'
 import { signIn } from '../services/authService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserProfile } from '../services/authService'; 
 
 
 export default function LoginScreen({navigation}){
     const [email, setEmail] = useState(''); 
     const [password, setPassword] = useState('');
-    const handleLogin = async () => {
-        if (!email || !password) {
-            alert("Please fill in all fields");
+const handleLogin = async () => {
+    if (!email || !password) {
+        alert("Please fill in all fields");
+        return;
+    }
+
+    const { data, error } = await signIn(email, password);
+    
+    if (error) {
+        alert(error.message);
+    } else {
+        console.log("Login successful!", data.user);
+        
+        // Get user profile to get role
+        const { data: profile, error: profileError } = await getUserProfile(data.user.id);
+        if (profileError) {
+            alert('Error loading profile');
             return;
         }
-
-        const { data, error } = await signIn(email, password);
         
-        if (error) {
-            alert(error.message);
-        } else {
-            console.log("Login successful!", data.user);
-            navigation.navigate('Home'); // We'll create this screen next
+        // Store userId and role in AsyncStorage
+        await AsyncStorage.setItem('userId', data.user.id);
+        await AsyncStorage.setItem('userRole', profile.role);
+        
+        console.log('Stored userId:', data.user.id);
+        console.log('Stored role:', profile.role);
+        
+        // ✨ NEW: Check if worker needs to change password
+        if (profile.role === 'worker' && profile.must_change_password) {
+            navigation.replace('ChangePassword');
+            return;
         }
+        
+        // Navigate based on role
+        if (profile.role === 'boss') {
+            navigation.replace('BossDashboard');
+        } else if (profile.role === 'worker') {
+            navigation.replace('WorkerDashboard');
+        }
+    }
 };
 
     return (
@@ -44,6 +72,10 @@ export default function LoginScreen({navigation}){
         onChangeText={setPassword}
         placeholder='Enter Password'
         placeholderTextColor="rgba(255, 255, 255, 0.6)"  // Semi-transparent white
+        secureTextEntry={true}
+        autoCorrect={false}
+        textContentType="oneTimeCode"
+        autoComplete="off"
         style = {styles.input}
         />
         <TouchableOpacity onPress={()=>navigation.navigate("ForgotPassword")}>
